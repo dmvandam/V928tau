@@ -47,21 +47,21 @@ Some things to note here are that the limb-darkening parameter is fixed at u = 0
 Above are all the parameters, but there are variations of the disk model.
 1) Fuzzy Disk has all these parameters
 2) Translucent Disk has: redge = 0 [R*], taue = 0
-3) Opaque Disk has: redge = 0 [R*] ,taue = 0, taud = 1
+3) Opaque Disk has: redge = 0 [R*], taue = 0, taud = 1
 
 The model is defined using pyPplusS.segment_models.LC_ringed()
 
     # planet position at the given times
-    xp = (time - dt) * vel
-    yp = b * np.ones_like(xp)
+    xp = (time - dt) * vel                    # planet x-position [R*]
+    yp = b * np.ones_like(xp)                 # planet y-position [R*]
     # companion properties
-    rp  = np.zeros_like(xp)
-    ri  = 1e-16 * np.ones_like(xp)
-    ro1 = rdisk * np.ones_like(xp)
-    ro2 = (rdisk + redge) * np.ones_like(xp)
+    rp  = np.zeros_like(xp)                   # planet size [R*]
+    ri  = 1e-16 * np.ones_like(xp)            # disk inner radius [R*] -- can't be 0
+    ro1 = rdisk * np.ones_like(xp)            # disk outer radius / edge inner radius [R*]
+    ro2 = (rdisk + redge) * np.ones_like(xp)  # edge outer radius [R*]
     # star: limb-darkening
-    c2 = 0.7220 # u
-    c1 = c3 = c4 = 0
+    c2 = 0.7220                               # linear limb-darkening law u
+    c1 = c3 = c4 = 0                          # the rest must be 0
     # calculate light curve of the disk then the edge then the combination
     lc_d = LC_ringed(rp, ri, ro1, xp, yp, inc, tilt, taud, c1, c2, c3, c4)
     if (redge != 0.) and (taue != 0.):
