@@ -30,3 +30,11 @@ If the companion were larger than 80 Mjup it would start glowing significantly c
 
 From these restrictions we see that the curve at the bottom of each parameter map is carved out by the Hill radius requirement.
 We also see that the apastron passage requirement carves out the right side of the parameter map.
+
+### Name structure
+
+x_Yc.png
+
+x is the parameter, which can be eccentricity (e), periastron passage (rp), apastron passage (rap), or Hill radius (rh).
+Y is the star V928 Tau A or B
+c is either the standard (std) or magnetic (mag) model of the host star.
