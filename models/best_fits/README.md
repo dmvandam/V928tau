@@ -3,20 +3,20 @@ This file contains all the best fits used in the paper to show models for the st
 This is as follows:
 
 ### Stellar Variation
-    - m  - slope of the linear trend
-    - c  - y-intercept of the linear trend
-    - a1 - amplitude of the 1st sinusoid [L*] 
-    - a2 - amplitude of the 2nd sinusoid [L*] 
-    - a3 - amplitude of the 3rd sinusoid [L*] 
-    - a4 - amplitude of the 4th sinusoid [L*] 
-    - T1 - period of the 1st sinusoid [day] 
-    - T2 - period of the 2nd sinusoid [day] 
-    - T3 - period of the 3rd sinusoid [day] 
-    - T4 - period of the 4th sinusoid [day] 
-    - p1 - phase of the 1st sinusoid [rad] 
-    - a2 - phase of the 2nd sinusoid [rad] 
-    - a3 - phase of the 3rd sinusoid [rad] 
-    - a4 - phase of the 4th sinusoid [rad] 
+- m  - slope of the linear trend
+- c  - y-intercept of the linear trend
+- a1 - amplitude of the 1st sinusoid [L*] 
+- a2 - amplitude of the 2nd sinusoid [L*] 
+- a3 - amplitude of the 3rd sinusoid [L*] 
+- a4 - amplitude of the 4th sinusoid [L*] 
+- T1 - period of the 1st sinusoid [day] 
+- T2 - period of the 2nd sinusoid [day] 
+- T3 - period of the 3rd sinusoid [day] 
+- T4 - period of the 4th sinusoid [day] 
+- p1 - phase of the 1st sinusoid [rad] 
+- a2 - phase of the 2nd sinusoid [rad] 
+- a3 - phase of the 3rd sinusoid [rad] 
+- a4 - phase of the 4th sinusoid [rad] 
 
 Note that this model is defined as follows
 
@@ -34,15 +34,15 @@ Note that this model is defined as follows
 
 Some things to note here are that the limb-darkening parameter is fixed at 0.7220.
 
-    - rd - disk radius [R*]
-    - re - edge thickness [R*]
-    - b  - impact parameter [R*]
-    - i  - inclination (0 = face-on, pi/2 = edge-on) [rad]
-    - t  - tilt (angle w.r.t. orbital path) [rad]
-    - v  - transverse velocity [R*/day]
-    - x  - time shift of eclipse minimum [day]
-    - T1 - opacity of the disk [-]
-    - T2 - opacity of the edge [-]
+- rd - disk radius [R*]
+- re - edge thickness [R*]
+- b  - impact parameter [R*]
+- i  - inclination (0 = face-on, pi/2 = edge-on) [rad]
+- t  - tilt (angle w.r.t. orbital path) [rad]
+- v  - transverse velocity [R*/day]
+- x  - time shift of eclipse minimum [day]
+- T1 - opacity of the disk [-]
+- T2 - opacity of the edge [-]
 
 Above are all the parameters, but there are variations of the disk model.
 1) Fuzzy Disk has all these parameters
