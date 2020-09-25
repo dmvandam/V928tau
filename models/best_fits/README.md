@@ -3,8 +3,8 @@ This file contains all the best fits used in the paper to show models for the st
 This is as follows:
 
 ### Stellar Variation
-- m  - slope of the linear trend
-- c  - y-intercept of the linear trend
+- m  - slope of the linear trend [L*/day]
+- c  - y-intercept of the linear trend [L*]
 - a1 - amplitude of the 1st sinusoid [L*] 
 - a2 - amplitude of the 2nd sinusoid [L*] 
 - a3 - amplitude of the 3rd sinusoid [L*] 
@@ -32,22 +32,22 @@ Note that this model is defined as follows
 
 ### Eclipse
 
-Some things to note here are that the limb-darkening parameter is fixed at 0.7220.
+Some things to note here are that the limb-darkening parameter is fixed at u = 0.7220.
 
-- rd - disk radius [R*]
-- re - edge thickness [R*]
-- b  - impact parameter [R*]
-- i  - inclination (0 = face-on, pi/2 = edge-on) [rad]
-- t  - tilt (angle w.r.t. orbital path) [rad]
-- v  - transverse velocity [R*/day]
-- x  - time shift of eclipse minimum [day]
-- T1 - opacity of the disk [-]
-- T2 - opacity of the edge [-]
+- rdisk - disk radius [R*]
+- redge - edge thickness [R*]
+- b     - impact parameter [R*]
+- inc   - inclination (0 = face-on, pi/2 = edge-on) [rad]
+- tilt  - tilt (angle w.r.t. orbital path) [rad]
+- vel   - transverse velocity [R*/day]
+- dt    - time shift of eclipse minimum [day]
+- taud  - opacity of the disk [-]
+- taue  - opacity of the edge [-]
 
 Above are all the parameters, but there are variations of the disk model.
 1) Fuzzy Disk has all these parameters
-2) Translucent Disk has: re = T2 = 0
-3) Opaque Disk has: re = T2 = 0 & T1 = 1
+2) Translucent Disk has: redge = 0 [R*], taue = 0
+3) Opaque Disk has: redge = 0 [R*] ,taue = 0, taud = 1
 
 The model is defined using pyPplusS.segment_models.LC_ringed()
 
@@ -69,3 +69,5 @@ The model is defined using pyPplusS.segment_models.LC_ringed()
     else:
         lc_e = 1
     lc = lc_d + lc_e - 1
+
+    eclipse_model = lc
