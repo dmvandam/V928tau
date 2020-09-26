@@ -240,13 +240,13 @@ def plot_walkers(sampler, cut=0, lbls=None, savename='test.png'):
         samples = sampler
     ns, nw, ndim = samples.shape # number of steps, walkers, dimensions
     # Plotting
-    fig, ax = plt.subplots(ndim, figsize=(14, ndim*4), sharex=True)
+    fig, ax = plt.subplots(ndim, figsize=(14, ndim * 4), sharex=True)
     plt.subplots_adjust(hspace=0.1)
     ax[0].set_title('%i Walkers (Burn-in = %i)' % (nw, cut), fontsize=24)
     for k in range(ndim):
         ax[k].tick_params(labelsize=18)
         ax[k].plot(samples[cut:, :, k], 'k', alpha=0.3)
-        ax[k].set_xlim(0, ns-cut)
+        ax[k].set_xlim(0, ns - cut)
         ax[k].set_ylabel(lbls[k], fontsize=24)
         ax[k].yaxis.set_label_coords(-0.1, 0.5)
     ax[-1].set_xlabel('Step Number', fontsize=20)
@@ -281,7 +281,7 @@ def plot_triangle(sampler, cut=0, lbls=None, bounds=None, savename='test.png'):
         _, _, ndim = sampler.shape
         samples = sampler[cut:, :, :].reshape((-1, ndim))
     _, ndim = samples.shape
-    fig = corner.corner(samples, labels=lbls, figsize=(14, ndim*4), 
+    fig = corner.corner(samples, labels=lbls, figsize=(14, ndim * 4),
                         range=bounds)
     fig.savefig(savename)
     plt.show()
@@ -350,8 +350,7 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
     ax1.tick_params(axis='both', labelsize=14)
     ax1.axhline(y=0, color='k', ls=':')
     ax1.set_ylabel('Residuals [-]', fontsize=16)
-    ax1.set_xlabel('Time [BJD - %i]' % (2454833+dt), fontsize=16)
-    ax1.set_ylim(residual_lims)
+    ax1.set_xlabel('Time [BJD - %i]' % (2454833 + dt), fontsize=16)
     for l, sampler, model, c, bc in zip(lbls, sampler_list, model_list,
                                         sample_colors, best_fit_colors):
         try:
@@ -379,6 +378,7 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
             best_fit_residuals = flux - best_fit_flux
             ax0.plot(time, best_fit_flux, color=bc)
             ax1.plot(time, best_fit_residuals, color=bc)
+    ax1.set_ylim(residual_lims)
     leg0 = ax0.legend(fontsize=14)
     leg1 = ax1.legend(fontsize=14)
     for lh0, lh1 in zip(leg0.legendHandles, leg1.legendHandles): 
@@ -428,7 +428,7 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
     '''
     colors=['r','y','m','b']
     # set up figure
-    fig = plt.figure(figsize=(13,10))
+    fig = plt.figure(figsize=(13, 10))
     # ax0 is the flux plot
     ax0 = plt.subplot2grid((4, 1), (0, 0), colspan=1, rowspan=3)
     ax0.set_ylabel('Normalised Flux [-]', fontsize=16)
@@ -443,7 +443,7 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
         residuals = flux - flux_model
         ax0.plot(time, flux_model, label=l, color=c, lw=4)
         if flip == True:
-            ax0.plot(time, np.flip(flux_model), label='%s flipped'%l, lw=4)
+            ax0.plot(time, np.flip(flux_model), label='%s flipped' % l, lw=4)
         if len(P_list) == 1:
             c = 'k'
         ax1.plot(time, residuals, marker='.', label=l, color=c)
@@ -451,7 +451,7 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
     ax0.legend(fontsize=14)
     ax1.axhline(y=0, color='k', ls=':')
     ax1.set_ylabel('Residuals [-]', fontsize=16)
-    ax1.set_xlabel('Time [BJD - %i]' % (2454833+dt), fontsize=16)
+    ax1.set_xlabel('Time [BJD - %i]' % (2454833 + dt), fontsize=16)
     ax1.set_ylim(residual_lims)
     # figure layout
     plt.tight_layout()
@@ -461,7 +461,7 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
     return None
 
 def extract_solutions(sampler, inds, bounds, cut=0, lbls=None, 
-                      savename='test.png'):
+                      solution_names=None, savename='test.png'):
     '''
     This function plots how the walkers move, you can also cut some of the data
     to better view the data
@@ -478,8 +478,14 @@ def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
         upper bound
     cut : int
         number of links to remove (burn-in period)
+    lbls : list of str
+        contains the names of the parameters
+    solution_names : list of str
+        contains the names of each extraction
     savename : str
         name of the saved plot
+    plot : bool
+        if true show a plot
         
     Returns
     -------
@@ -494,7 +500,7 @@ def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
         samples = sampler
     ns, nw, ndim = samples.shape
     # masks are created based on the final value of the walker
-    last_sample = samples[-1,:,:]
+    last_sample = samples[-1, :, :]
     sub_samples = []
     # here we can apply masks
     for ind, bound in zip(inds, bounds):
@@ -513,11 +519,15 @@ def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
         ax[k].plot(samples[cut:,:,k],"k",alpha=0.3)
         # plot sub-samples
         for x, sub_sample in enumerate(sub_samples):
-            ax[k].plot(sub_sample[cut:,:,k], colors[x % 6], alpha=0.3)
-        ax[k].set_xlim(0, ns-cut)
+            name = solution_names[x]
+            ax[k].plot(sub_sample[cut:, :, k], colors[x % 6], alpha=0.3,
+                       label=name)
+        ax[k].set_xlim(0, ns - cut)
         ax[k].set_ylabel(lbls[k], fontsize=24)
-        ax[k].yaxis.set_label_coords(-0.1,0.5)
+        ax[k].yaxis.set_label_coords(-0.1, 0.5)
+    ax[-1].legend()
     ax[-1].set_xlabel('Step Number', fontsize=20)
+    plt.savefig(savename)
     plt.show()
     return sub_samples
 
