@@ -248,7 +248,7 @@ def plot_walkers(sampler, cut=0, lbls=None, savename='test.png'):
         ax[k].plot(samples[cut:, :, k], 'k', alpha=0.3)
         ax[k].set_xlim(0, ns - cut)
         ax[k].set_ylabel(lbls[k], fontsize=24)
-        ax[k].yaxis.set_label_coords(-0.1, 0.5)
+        ax[k].yaxis.set_label_coords(-0.07, 0.5)
     ax[-1].set_xlabel('Step Number', fontsize=20)
     fig.savefig(savename)
     plt.show()
@@ -333,8 +333,7 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
     import warnings
     warnings.filterwarnings("ignore")
     # rest of the function
-    sample_colors = ['C1','C2','C3','C4']
-    best_fit_colors = ['r', 'y', 'm', 'b']
+    colors = 2 * ['C1','C2','C3','C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C0']
     plotted_samples = []
     # set up figure
     fig = plt.figure(figsize=(13, 10))
@@ -351,8 +350,7 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
     ax1.axhline(y=0, color='k', ls=':')
     ax1.set_ylabel('Residuals [-]', fontsize=16)
     ax1.set_xlabel('Time [BJD - %i]' % (2454833 + dt), fontsize=16)
-    for l, sampler, model, c, bc in zip(lbls, sampler_list, model_list,
-                                        sample_colors, best_fit_colors):
+    for l, sampler, model, c, in zip(lbls, sampler_list, model_list, colors):
         try:
             flat_samples = sampler.get_chain(discard=cut, flat=True)
         except:
@@ -376,8 +374,12 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
             _, pb = stats(sampler, cut=cut)
             best_fit_flux = model(pb, time)
             best_fit_residuals = flux - best_fit_flux
-            ax0.plot(time, best_fit_flux, color=bc)
-            ax1.plot(time, best_fit_residuals, color=bc)
+            # black outline photometry
+            ax0.plot(time, best_fit_flux, color='k', lw=4)
+            ax0.plot(time, best_fit_flux, color=c)
+            # black outline residuals
+            ax1.plot(time, best_fit_residuals, color='k', lw=3)
+            ax1.plot(time, best_fit_residuals, color=c)
     ax1.set_ylim(residual_lims)
     leg0 = ax0.legend(fontsize=14)
     leg1 = ax1.legend(fontsize=14)
@@ -460,7 +462,7 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
     plt.show()
     return None
 
-def extract_solutions(sampler, inds, bounds, cut=0, lbls=None, 
+def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
                       solution_names=None, savename='test.png'):
     '''
     This function plots how the walkers move, you can also cut some of the data
@@ -509,7 +511,7 @@ def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
         mask = lower_mask * upper_mask
         sub_samples.append(samples[:, mask, :])
     # creating the plot
-    colors=['r','g','c','y','m','b']
+    colors = ['r','g','c','y','m','b']
     fig, ax = plt.subplots(ndim, figsize=(14, ndim * 4), sharex=True)
     plt.subplots_adjust(hspace=0.1)
     ax[0].set_title('%i Walkers (Burn-in = %i)' % (nw, cut), fontsize=24)
@@ -518,14 +520,18 @@ def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
         # plot samples
         ax[k].plot(samples[cut:,:,k],"k",alpha=0.3)
         # plot sub-samples
+        lines = []
         for x, sub_sample in enumerate(sub_samples):
-            name = solution_names[x]
-            ax[k].plot(sub_sample[cut:, :, k], colors[x % 6], alpha=0.3,
-                       label=name)
+            ax[k].plot(sub_sample[cut:, :, k], colors[x % 6], alpha=0.3)
+            l, = ax[k].plot(sub_sample[cut:, 0, k], colors[x % 6], alpha=0.01)
+            lines.append(l)
         ax[k].set_xlim(0, ns - cut)
         ax[k].set_ylabel(lbls[k], fontsize=24)
-        ax[k].yaxis.set_label_coords(-0.1, 0.5)
-    ax[-1].legend()
+        ax[k].yaxis.set_label_coords(-0.07, 0.5)
+    leg = ax[0].legend(lines, solution_names, loc='lower right', fontsize=16,
+                       frameon=False, bbox_to_anchor=(1.01, 0.97))
+    for lh in leg.legendHandles: 
+        lh.set_alpha(1)
     ax[-1].set_xlabel('Step Number', fontsize=20)
     plt.savefig(savename)
     plt.show()
@@ -557,7 +563,7 @@ def stats(sampler, cut=0):
         flat_samples = sampler.get_chain(discard=cut, flat=True)
     except:
         _, _, ndim = sampler.shape
-        flat_samples = sampler.reshape((-1, ndim))
+        flat_samples = sampler[cut:, :, :].reshape((-1, ndim))
     lower, mid, upper = np.percentile(flat_samples, [16,50,84], axis=0)
     statistics = np.array([mid, upper-mid, mid-lower]).T
     p_best = mid
