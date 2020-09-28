@@ -395,7 +395,7 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
 
 def plot_models(time, flux, error, model_list, P_list, lbls=None, 
                 plot_lims=None, residual_lims=None, savename='test.png',
-                flip=False, dt=0):
+                flip=False, dt=0, lw=4):
     '''
     this function plots models against each other
 
@@ -426,9 +426,12 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
 
     Returns
     -------
-    matplotlib.figure()
+    chi2s : array of floats
+        contains the chi2 value for each of the models tested according to
+        chi2 = sum( ( (flux - model_flux) / error )^2 )
     '''
-    colors=['r','y','m','b']
+    colors = 2 * ['r', 'g', 'b', 'y', 'm', 'c']
+    chi2s  = []
     # set up figure
     fig = plt.figure(figsize=(13, 10))
     # ax0 is the flux plot
@@ -445,10 +448,13 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
         residuals = flux - flux_model
         ax0.plot(time, flux_model, label=l, color=c, lw=4)
         if flip == True:
-            ax0.plot(time, np.flip(flux_model), label='%s flipped' % l, lw=4)
+            ax0.plot(time, np.flip(flux_model), label='%s flipped' % l, lw=lw)
         if len(P_list) == 1:
             c = 'k'
         ax1.plot(time, residuals, marker='.', label=l, color=c)
+        # calculate chi2
+        chi2 = np.sum((residuals/error)**2)
+        chi2s.append(chi2)
     ax1.tick_params(axis='both', labelsize=14)
     ax0.legend(fontsize=14)
     ax1.axhline(y=0, color='k', ls=':')
@@ -460,7 +466,8 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
     fig.subplots_adjust(hspace=0)
     plt.savefig(savename)
     plt.show()
-    return None
+    chi2s = np.array(chi2s)
+    return chi2s
 
 def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
                       solution_names=None, savename='test.png'):
