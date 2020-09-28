@@ -153,7 +153,7 @@ def disk_model(P, time):
 #%% PHYSICAL PRIOR %%#
 ######################
 
-def periastron_passage(Mp, P, v, Ms=0.7*u.Msun, Rs=1.376*u.Rsun): 
+def periastron_passage(Mp, P, v, Ms=0.7*u.Msun, Rs=1.296*u.Rsun): 
     '''
     this function finds the periastron and apastron distance given a particular
     set of input parameters
@@ -243,7 +243,7 @@ def bisection_ra(P0, P1, v, target=3.2*u.au, tol=1e-3*u.au, diag=False):
             print('after %i loops periastron is %.2f au' % (counter, ra.value)) 
     return P, ra, rp
 
-def rdisk_max(v, Ms=0.7*u.Msun, Rs=1.376*u.Rsun, diag=False): 
+def rdisk_max(v, Ms=0.7*u.Msun, Rs=1.296*u.Rsun, diag=False): 
     '''
     this function determines the maximum disk size given a transverse
     velocity. the assumption is that the companion is a 80 Mjup companion
@@ -445,7 +445,7 @@ def disk_prior(P):
     xl, xu = (-10., 10.)
     Tl, Tu = (0., 1.)
     # unphysical
-    if rd > rdisk_max(v):
+    if rd + re > rdisk_max(v):
         prior = -np.inf
     # parameters are within boundaries
     elif ((rl<=rd<=ru) and (rl<=re<=ru) and (bl<=b<=bu) and (il<=i<=iu) and 
