@@ -446,7 +446,7 @@ def plot_models(time, flux, error, model_list, P_list, lbls=None,
     for P, model, l, c in zip(P_list, model_list, lbls, colors):
         flux_model = model(P, time)
         residuals = flux - flux_model
-        ax0.plot(time, flux_model, label=l, color=c, lw=4)
+        ax0.plot(time, flux_model, label=l, color=c, lw=lw)
         if flip == True:
             ax0.plot(time, np.flip(flux_model), label='%s flipped' % l, lw=lw)
         if len(P_list) == 1:
