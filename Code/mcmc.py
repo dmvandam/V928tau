@@ -493,8 +493,6 @@ def extract_solutions(sampler, inds, bounds, cut=0, lbls=None,
         contains the names of each extraction
     savename : str
         name of the saved plot
-    plot : bool
-        if true show a plot
         
     Returns
     -------
