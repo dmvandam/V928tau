@@ -219,7 +219,8 @@ def get_parameters(m1, m2, P, vp):
 def plot_parameter(P, m2, parameter, parameter_name, lvls=10, xlim=None, 
                    ylim=None, xscale='linear', yscale='linear', rap_mask=1,
                    rh_mask=1, period_mask=None, mass_mask=None, vmin=None,
-                   vmax=None, tick_num=6, savename='test.png'):
+                   vmax=None, tick_num=6, title_color='w', 
+                   savename='test.png'):
     '''
     this function creates a 2-D parameter map for the provided parameter with
     the period on the x-axis and the mass of the companion on the y-axis.
@@ -260,6 +261,8 @@ def plot_parameter(P, m2, parameter, parameter_name, lvls=10, xlim=None,
         tick locations are defined as np.linspace(tl, tu, tick_num), where tl
         is either the smallest value parameter or vmin (if defined) and tu is
         either the largest value parameter or vmax (if defined)
+    title_color : str
+        acceptable color string for matplotlib [default ='w']
     savename : str
         name of the saved plot
     
@@ -298,8 +301,8 @@ def plot_parameter(P, m2, parameter, parameter_name, lvls=10, xlim=None,
     ax.set_yscale(yscale)
     ax.tick_params(labelsize=20)
     # add text to show parameter in plot
-    ax.text(0.1, 0.8, '%s' % title, color='w', weight='bold', fontsize=36, 
-            transform=ax.transAxes)
+    ax.text(0.1, 0.8, '%s' % title, color=title_color, weight='bold',
+            fontsize=36, transform=ax.transAxes)
     # add colourbar
     divider = make_axes_locatable(ax)
     cax = divider.append_axes('right', size='5%', pad=0.05)
