@@ -414,7 +414,7 @@ def plot_folded_eclipse(k2_phase, k2_mag, k2_error, ground_phases, ground_mags,
             continue
         ax0.errorbar(phase, interp_mag, yerr=0, fmt='.', color='m', label=lbl)
         ax0.errorbar(phase, mag, yerr=error, fmt=mrk, color=c, label=tel)
-        ax1.errorbar(phase, interp_mag - mag, yerr=interp_mag, fmt=mrk, color=c)
+        ax1.errorbar(phase, interp_mag - mag, yerr=error, fmt=mrk, color=c)
         lbl = None
     ax0.legend(loc='lower left')
     plt.setp(ax0.get_xticklabels(), visible=False)
