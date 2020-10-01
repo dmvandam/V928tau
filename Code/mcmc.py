@@ -288,7 +288,7 @@ def plot_triangle(sampler, cut=0, lbls=None, bounds=None, savename='test.png'):
     return None
 
 def plot_samples(time, flux, error, model_list, sampler_list, lbls=None, 
-                 cut=0, num=100, plot_lims=None, residual_lims=None, 
+                 cuts=0, num=100, plot_lims=None, residual_lims=None, 
                  savename='test.png', alpha=0.1, best_fit=False, dt=0):
     '''
     this function plots various of the solutions found by the MCMC sampling
@@ -307,8 +307,9 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
         list of MCMC objects containing all the parameters
     lbls : list of str
         list containing names of the models / samplers
-    cut : int
-        number of links to remove (burn-in period)
+    cuts : int or list of ints
+        number of links to remove (burn-in period), if it is an integer it is
+        applied to all samplers
     num : int
         number of models to plot
     plot_lims : tuple
@@ -332,6 +333,11 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
     # remove warnings
     import warnings
     warnings.filterwarnings("ignore")
+    # check whether or not cuts is an iterable
+    try:
+        test = cuts[0]
+    except:
+        cuts = cuts * np.ones_like(sampler_list)
     # rest of the function
     colors = 2 * ['C1','C2','C3','C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C0']
     plotted_samples = []
@@ -350,7 +356,8 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
     ax1.axhline(y=0, color='k', ls=':')
     ax1.set_ylabel('Residuals [-]', fontsize=16)
     ax1.set_xlabel('Time [BJD - %i]' % (2454833 + dt), fontsize=16)
-    for l, sampler, model, c, in zip(lbls, sampler_list, model_list, colors):
+    for l, sampler, model, c, cut in zip(lbls, sampler_list, model_list, 
+                                         colors, cuts):
         try:
             flat_samples = sampler.get_chain(discard=cut, flat=True)
         except:
@@ -381,11 +388,9 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
             ax1.plot(time, best_fit_residuals, color='k', lw=3)
             ax1.plot(time, best_fit_residuals, color=c)
     ax1.set_ylim(residual_lims)
-    leg0 = ax0.legend(fontsize=14)
-    leg1 = ax1.legend(fontsize=14)
-    for lh0, lh1 in zip(leg0.legendHandles, leg1.legendHandles): 
-        lh0.set_alpha(1)
-        lh1.set_alpha(1)    
+    leg = ax0.legend(fontsize=14)
+    for lh in leg.legendHandles: 
+        lh.set_alpha(1)
     # figure layout
     plt.tight_layout()
     fig.subplots_adjust(hspace=0)
