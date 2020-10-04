@@ -31,10 +31,9 @@ If the companion were larger than 80 Mjup it would start glowing significantly c
 From these restrictions we see that the curve at the bottom of each parameter map is carved out by the Hill radius requirement.
 We also see that the apastron passage requirement carves out the right side of the parameter map.
 
-### Name structure
+### Folders
 
-x_Yc.png
+opaque_fast: are the subset of chains that ended up with velocities greater than 8 $R_*$ / day$^-1}$
+opaque_slow: are the subset of chains that ended up with velocities lower than 8 $R_*$ / day$^{-1}$ and with disk radii less than 1.5 $R_*$
 
-x is the parameter, which can be eccentricity (e), periastron passage (rp), apastron passage (rap), or Hill radius (rh).
-Y is the star V928 Tau A or B
-c is either the standard (std) or magnetic (mag) model of the host star.
+
