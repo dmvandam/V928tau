@@ -410,7 +410,6 @@ def useful_p0(p0_func, func_args, disk_model, time, two_comp=False, v_ind=4):
                 # ensure you don't exceed the nw
                 if ind_1 == nw:
                     break
-        print('ran a for loop')
         if len(ps) == 0:
             continue
         # populate P0
@@ -444,8 +443,11 @@ def disk_prior(P):
     vl, vu = (4., 20.)
     xl, xu = (-10., 10.)
     Tl, Tu = (0., 1.)
+    # not a fuzzy disk
+    if Td < Te:
+        prior = -np.inf
     # unphysical
-    if rd + re > rdisk_max(v):
+    elif rd + re > rdisk_max(v):
         prior = -np.inf
     # parameters are within boundaries
     elif ((rl<=rd<=ru) and (rl<=re<=ru) and (bl<=b<=bu) and (il<=i<=iu) and 
