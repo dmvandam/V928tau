@@ -337,7 +337,7 @@ def plot_samples(time, flux, error, model_list, sampler_list, lbls=None,
     try:
         test = cuts[0]
     except:
-        cuts = cuts * np.ones_like(sampler_list)
+        cuts = cuts * np.ones(len(sampler_list)).astype(np.int)
     # rest of the function
     colors = 2 * ['C1','C2','C3','C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C0']
     plotted_samples = []
