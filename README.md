@@ -24,6 +24,14 @@ This best fit from scipy.curve_fit() is used as an initial guess for an MCMC sam
 ### 4) Eclipse Modelling
 <em>Goal</em>: This section attemps to find a circumplanetary disk solution to the eclipse. This is done with the help of <strong>pyPplusS</strong> a code package developed by Rein & Ofir 2019 (https://github.com/EdanRein/pyPplusS) and using an MCMC sampling method developed here. The models tested are a translucent single disk, an opaque single disk, and a two-component disk with the inner component more opaque than the outer edge.
 
+#### a) Opaque Disk
+Here we model an opaque disk (disk opacity = 1) with no edge component
+#### b) Translucent Disk
+Here we remove the disk opacity constraint above
+#### c) Fuzzy Disk
+Here we add a second component to the disk with an edge thickness and edge opacity
+
+
 <em>Results</em>: Several solutions were found, the most interesting are discussed in the paper
 
 ### 5) Orbital Analysis
@@ -39,11 +47,11 @@ v928tau : contains all the jupyter-notebooks
       - photometry : light curves of K2 data
       - limb-darkening : contains all the data files from jktld for obtaining the limb-darkening parameter u
   - models : contains all the model data with mcmc backends (.h5) and best fits (.npy)
-      - eclipse
-      - stellar_variation
+      - best_fits
+      - backends (can be requested via e-mail)
   - plots : contains all the plots
       - paper : all plots used for the paper
       - ground_variation : has different folders for binsize and window size (xrange)
       - parameters : has the parameter maps around V928 Tau A+B (magnetic and standard)
-      - period_folding : shows the plots used to determine interesting periods (sigma indicates the allowed multiple of the error, bs indicates the binsize if any)
+      - period_folding : shows the plots used to determine interesting periods (can be requested via e-mail)
   - pyPplusS : code package by Rein & Ofir 2019 (https://github.com/EdanRein/pyPplusS)

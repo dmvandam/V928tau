@@ -14,8 +14,135 @@
 #%% STANDARD MODULES %%#
 ########################
 
+from astropy.timeseries import LombScargle
+from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+
+##########################
+#%% ANALYSIS FUNCTIONS %%#
+##########################
+
+def lombscargle_periodogram(time, flux, error, min_period=0.1, max_period=4,
+                            peak_points=10, height=0, peak_ind=0, plot=True):
+    '''
+    this function determines the peak period of a given light curve, allows
+    one to choose which peak to select, then plots the periodogram and the
+    folded light curve
+    
+    Parameters
+    ----------
+    time : array of float
+        contains time data for the light curve
+    flux : array of float
+        contains flux data for the light curve
+    error : array of float
+        contains error data for the light curve
+    min_period : float
+        minimum period to investigate [default = 0.1 days]
+    max_period : float
+        maximum period to investigate [default = 4 days]
+    peak_points : int
+        number of points around peaks [default = 10]
+    height : float
+        minimum height to consider peaks [default = 0]
+    peak_ind : ind
+        choose a peak number, maximum is default [peak_ind = 0]
+    plot : bool
+        plot a periodogram and the folded lightcurve with best fit sinusoid
+     
+    Returns
+    -------
+    Pb : tuple
+        contains the best fit parameters for the sine wave (amplitude,
+        period, phase)
+    residuals : array of float
+        contains the residuals between the best fit model and the data
+    '''
+    time_fixed = time - time[0]
+    # create the periodogram
+    model = LombScargle(time_fixed, flux, error)
+    frequencies, power = model.autopower(minimum_frequency=(1./max_period), 
+                                         maximum_frequency=(1/min_period), 
+                                         samples_per_peak=peak_points)
+    # convert to periods
+    periods = 1/frequencies
+    # identify and extract peaks
+    inds, peaks = find_peaks(power, height=height)
+    peaks = peaks['peak_heights']
+    sort_peaks = np.argsort(peaks)
+    inds  = inds[sort_peaks]
+    peaks = peaks[sort_peaks]
+    # select peak
+    period = periods[inds[-1 - peak_ind]]
+    # fit the sinusoid
+    flux_fit = model.model(time_fixed, 1/period)
+    residuals = flux - flux_fit
+    t0, t1, t2 = model.model_parameters(1/period)
+    # convert theta parameters to amplitude and phase
+    amplitude = np.hypot(t1, t2) * np.sign(flux_fit[0])
+    phase = -np.arctan(t1 / t2) + np.pi/2
+    Pb = (amplitude, period, phase)
+    # plot the periodogram and folded light curve
+    if plot == True:
+        # periodogram
+        fig = plt.figure(figsize=(16, 8))
+        plt.title('Lomb-Scargle Periodogram of Stellar Variations')
+        plt.xlabel('Period [days]')
+        plt.ylabel('Power [-]')
+        plt.plot(periods, power, 'b-')
+        plt.gca().axvline(x=period, color='k', ls=':')
+        plt.show()
+        # folded light curve
+        plot_folded(time_fixed, flux, error, Pb, flux_fit)
+        print('%.6f sin(2 pi time / %.4f + %.4f)' % Pb)
+    return Pb, residuals
+
+def plot_folded(time, flux, error, Pb, flux_fit, xlim=(0,1)):
+    '''
+    this function makes a phase-folded plot of the provided light curve
+    
+    Parameters
+    ----------
+    time : array of float
+        contains time data for the light curve
+    flux : array of float
+        contains flux data for the light curve
+    error : array of float
+        contains error data for the light curve
+    amplitude : float
+        best fit amplitude for the sine fit
+    Pb : tuple, list, array
+        contains best fit parameters for sine curve
+            amplitude --> of the sine
+            period --> of the sine
+            phase --> of the sine
+    xlim : tuple
+        xlims of the plot [default = (0, 1)]
+
+    Returns
+    -------
+    matplotlib.figure()
+    '''
+    # correct time
+    time_fixed = time - time[0]
+    # extract best fit
+    amp, prd, phs = Pb
+    phase = (time_fixed % prd) / prd
+    fig = plt.figure(figsize=(16, 8))
+    plt.xlabel('Phase [-]')
+    plt.ylabel('Normalised Flux [-]')
+    plt.title('Folded Light Curve [Period = %.4f]' % prd)
+    sort = np.argsort(phase)
+    plt.errorbar(phase[sort], flux[sort], yerr=error, fmt='.', color='k')
+    plt.plot(phase[sort], sines(time_fixed, [amp], [prd], [phs])[sort],
+             'r-', lw=8)
+    plt.plot(phase[sort], flux_fit[sort],'g-', lw=8)
+    plt.xlim(xlim)
+    plt.show()
+    return None
 
 
 
@@ -45,193 +172,30 @@ def line(time, slope, y_intercept):
     trend = slope * time_fixed + y_intercept
     return trend
 
-def mcmc_line(P, time):
+def sines(time, amplitudes, periods, phases):
     '''
-    mcmc version of line function
-
-    Parameters
-    ----------
-    P : list, tuple, array of floats
-        contains parameters for line function
-            m --> slope
-            b --> y_intercept
-    time : array of floats
-        contains time data for the light curve
-    
-    Returns
-    -------
-    trend : array of floats
-        line that follows trend = slope * time_fixed + y_intercept
-    '''
-    m, b = P
-    trend = line(time, m, b)
-    return trend
-
-def sine(time, amplitude, period, phase):
-    '''
-    function that returns a sinusoid based on the inputs
+    function that returns the sum of several sinusoids
 
     Parameters
     ----------
     time : array of float
         contains time data for the light curve
-    amplitude : float
-        amplitude of the sine
-    period : float
-        period of the sine
-    phase : float
-        phase of the sine
+    amplitudes : list of floats
+        amplitudes of the sines
+    periods : list of floats
+        periods of the sines
+    phases : list of floats
+        phases of the sines
 
     Returns
     -------
     trend : array of float
-        sine with given input parameters
+        sum of sines with given input parameters
     '''
     time_fixed = time - time[0]
-    trend = amplitude * np.sin(2 * np.pi * time_fixed / period + phase)
+    trend = 0
+    for amplitude, period, phase in zip(amplitudes, periods, phases):
+        sine = amplitude * np.sin(2 * np.pi * time_fixed / period + phase)
+        trend += sine
     return trend
-
-def mcmc_sine(P, time):
-    '''
-    mcmc version of sine function
-
-    Parameters
-    ----------
-    P : list, tuple, array of floats
-        contains parameters for line function
-            a --> amplitude
-            T --> period
-            p --> phase
-    time : array of floats
-        contains time data for the light curve
-    
-    Returns
-    -------
-    trend : array of floats
-        sine with given input parameters
-    '''
-    a, T, p = P
-    trend = sine(time, a, T, p)
-    return trend
-
-def two_sines(time, amplitude1, amplitude2, period1, period2, phase1, phase2):
-    '''
-    function that returns the sum of two sinusoids
-
-    Parameters
-    ----------
-    time : array of float
-        contains time data for the light curve
-    amplitude1 : float
-        amplitude of the 1st sinusoid
-    amplitude2 : float
-        amplitude of the 2nd sinuosid
-    period1 : float
-        period of the 1st sinusoid
-    period2 : float
-        period of the 2nd sinusoid
-    phase1 : float
-        phase of the 1st sinusoid
-    phase2 : float
-        phase of the 2nd sinusoid
-
-    Returns
-    -------
-    trend : array of float
-        addition of sinusoid 1 and 2
-    '''
-    sine1 = sine(time, amplitude1, period1, phase1)
-    sine2 = sine(time, amplitude2, period2, phase2)
-    trend = sine1 + sine2
-    return trend
-
-def mcmc_two_sines(P, time):
-    '''
-    mcmc version of sine function
-
-    Parameters
-    ----------
-    P : list, tuple, array of floats
-        contains parameters for line function
-            a1 --> amplitude1
-            a2 --> amplitude2
-            T1 --> period1
-            T2 --> period2
-            p1 --> phase1
-            p2 --> phase2
-    time : array of floats
-        contains time data for the light curve
-    
-    Returns
-    -------
-    trend : array of floats
-        addition of sinusoid 1 and 2
-    '''
-    a1, a2, T1, T2, p1, p2 = P
-    trend = two_sines(time, a1, a2, T1, T2, p1, p2)
-    return trend
-
-def stellar_variation_prior(P):
-    '''
-    gives the limit of the parameter space for the model
-
-    Parameters
-    ----------
-    P : list, tuple, array of floats
-        contains parameters of the model
-            m --> slope of the line
-            b --> intercept of the line
-            a1-4 --> amplitudes of the sinusoids
-            t1-4 --> periods of the sinusoids
-            p1-4 --> phases of the sinusoids
-
-    Returns
-    -------
-    prior : float
-        0 if in parameter space, - infinity if outside
-    '''
-    m, b, a1, a2, a3, a4, t1, t2, t3, t4, p1, p2, p3, p4 = P
-    ml, mu = (-0.1, 0.1)
-    bl, bu = (0.9, 1.1)
-    al, au = (-0.05, 0.05)
-    tl, tu = (0, 4)
-    pl, pu = (0, 2*np.pi)
-    if ((ml<=m<=mu) and (bl<=b<=bu) and (al<=a1<=au) and (al<=a2<=au) and
-       (al<=a3<=au) and (al<=a4<=au) and (tl<=t1<=tu) and (tl<=t2<=tu) and
-       (tl<=t3<=tu) and (tl<=t4<=tu) and (pl<=p1<=pu) and (pl<=p2<=pu) and
-       (pl<=p3<=pu) and (pl<=p4<=pu)):
-        prior = 0.0
-    else:
-        prior = -np.inf
-    return prior
-
-def stellar_variation_model(P, time):
-    '''
-    the 4 sinusoid + linear trend model of the stellar variation
-
-    Parameters
-    ----------
-    P : list, tuple, array of floats
-        contains the model parameters
-            m --> slope of the line
-            b --> intercept of the line
-            a1-4 --> amplitudes of the sinusoids
-            t1-4 --> periods of the sinusoids
-            p1-4 --> phases of the sinusoids
-    time : array
-        contains time data for the light curve
-
-    Returns
-    -------
-    model : array
-        contains flux values for the light curve model
-    '''
-    m, b, a1, a2, a3, a4, T1, T2, T3, T4, p1, p2, p3, p4 = P
-    trend = line(time, m, b)
-    sine1 = sine(time, a1, T1, p1)
-    sine2 = sine(time, a2, T2, p2)
-    sine3 = sine(time, a3, T3, p3)
-    sine4 = sine(time, a4, T4, p4)
-    model = trend + sine1 + sine2 + sine3 + sine4
-    return model
 
