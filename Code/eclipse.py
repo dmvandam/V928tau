@@ -495,7 +495,7 @@ def ring_patch(rin, rout, inc_deg, tilt_deg, tau, dr=([0, 0])):
     # get an Ellipse patch that has an ellipse defined with eight CURVE4 Bezier
     # curves actual parameters are irrelevant - get_path() returns only a 
     # normalised Bezier curve ellipse which we then subsequently transform
-    e1 = patches.Ellipse((1, 1), 1, 1, 0)
+    e1 = Ellipse((1, 1), 1, 1, 0)
     # get the Path points for the ellipse (8 Bezier curves with 3 additional 
     # control points)
     e1p = e1.get_path()
@@ -507,8 +507,8 @@ def ring_patch(rin, rout, inc_deg, tilt_deg, tau, dr=([0, 0])):
     i = np.cos(inc)
     a1 = e1p.vertices * ([1., i])
     a2 = e1p.vertices * ([-1., i])
-    e1r = np.dot(a1 * r2, rotm) + dr
-    e2r = np.dot(a2 * r1, rotm) + dr
+    e1r = np.dot(a1 * rout, rotm) + dr
+    e2r = np.dot(a2 * rin, rotm) + dr
     # create the vertices and fix the path
     new_verts = np.vstack((e1r, e2r))
     new_cmds = np.hstack((e1p.codes, e1p.codes))
@@ -516,23 +516,23 @@ def ring_patch(rin, rout, inc_deg, tilt_deg, tau, dr=([0, 0])):
     newP = PathPatch(newp, facecolor='black', edgecolor='none', alpha=tau)
     return newP
 
-def light_curve_model(time, radii, b, inc_deg, tilt_deg, vel, dt, taus, 
-                      u=0.7220, num_trans=3, shift=0):
+def light_curve_model(model_time, radii, b, inc, tilt, vel, dt, taus, u=0.7220,
+                      num_trans=3, shift=0, deg=False):
     '''
     this function creates a light curve model based on the given parameters
     
     Parameters
     ----------
-    time : array
+    model_time : array
         times at which to evaluate the model
     radii : list
         list of values for all the ring radii (the first is the disk) in R*
     b : float
         impact parameter in R*
-    inc_deg : float
-        inclination in degrees
-    tilt_deg : float
-        tilt w.r.t. x-axis in degrees
+    inc : float
+        inclination in rad (unless deg = True)
+    tilt : float
+        tilt w.r.t. x-axis in rad (unless deg = True)
     vel : float
         transverse velocity in R* / day
     dt : float
@@ -545,7 +545,9 @@ def light_curve_model(time, radii, b, inc_deg, tilt_deg, vel, dt, taus,
         number of patches to make [default = 3]
     shift : float
         shift location of the patches [default = 0]
-    
+    deg : bool
+        if True, inc and tilt are given in degrees
+
     Returns
     -------
     light_curves : list of arrays
@@ -557,11 +559,17 @@ def light_curve_model(time, radii, b, inc_deg, tilt_deg, vel, dt, taus,
         contains all the patches that compose the ring system
     '''
     # conversion to radians
-    inc = np.deg2rad(inc_deg)
-    tilt = np.deg2rad(tilt_deg)
+    if deg == True:
+        inc_deg  = inc
+        tilt_deg = tilt
+        inc =  np.deg2rad(inc)
+        tilt = np.deg2rad(tilt)
+    else:
+        inc_deg  = np.rad2deg(inc)
+        tilt_deg = np.rad2deg(tilt)
     ## Creating the Light Curve
     # ring system position
-    xp = (time - dt) * vel
+    xp = (model_time - dt) * vel
     yp = b * np.ones_like(xp)
     # limb-darkening
     c1 = c3 = c4 = 0
@@ -575,7 +583,7 @@ def light_curve_model(time, radii, b, inc_deg, tilt_deg, vel, dt, taus,
     num = 0
     print('the star has a linear limb-darkening parameter of %.4f' % u)
     print('the disk system is inclined by %.2f [deg] and tilted by %.2f [deg] \
-    with an impact parameter of %.2f [R*]' % (inc, tilt, b))
+    with an impact parameter of %.2f [R*]' % (inc_deg, tilt_deg, b))
     print('the disk system travels at %.2f [R* / day] and is offset by %.2f \
     days' % (vel, dt))
     for r, T in zip(radii, taus):
@@ -601,7 +609,7 @@ def light_curve_model(time, radii, b, inc_deg, tilt_deg, vel, dt, taus,
         rin = rout
     # normalise full light curve
     light_curve += 1
-    return light_curves, light_curve, patches
+    return patches, light_curves, light_curve
 
 def make_plots(patches, light_curves, light_curve, model_time, time, flux, 
                error, star_name='V928 Tau', xlim1=(-10,15), ylim1=(-5,5),
