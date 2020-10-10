@@ -80,42 +80,6 @@ def load_survey_data(filename):
 #%% MODEL FUNCTIONS %##
 #######################
 
-def ground_stellar_variation_model(P, time, k2_time0):
-    '''
-    this function reproduces the model from the stellar_variation module, but 
-    converts to magnitudes and requires the time_shift used for the k2 model
-
-    Parameters
-    ----------
-    P : list, tuple, array
-        contains the parameters for the stellar variation model
-        m --> slope of the line [L*/day]
-        b --> y-intercept of the line [L*]
-        a1-4 --> amplitudes of the sine waves [L*]
-        t1-4 --> periods of the sine waves [days]
-        p1-4 --> phases of the sine waves [rad]
-    time : array of floats
-        contains time data for the light curve model
-    k2_time0 : float
-        initial time value of the k2 light curve (so that best fit parameters
-        match the current model -- see the stellar_variation module)
-
-    Returns
-    -------
-    total_mags : array of floats
-        model magnitude values for the given times
-    '''
-    m, b, a1, a2, a3, a4, t1, t2, t3, t4, p1, p2, p3, p4 = P
-    t = time - k2_time0
-    line = m * t + b
-    sine1 = a1 * np.sin(2 * np.pi * t / t1 + p1)
-    sine2 = a2 * np.sin(2 * np.pi * t / t2 + p2)
-    sine3 = a3 * np.sin(2 * np.pi * t / t3 + p3)
-    sine4 = a4 * np.sin(2 * np.pi * t / t4 + p4)
-    total_flux = line + sine1 + sine2 + sine3 + sine4
-    total_mags = -2.5 * np.log10(total_flux)
-    return total_mags
-
 def bin_telescope(time, mag, error, binsize=0.1):
     '''
     this function bins the data for a particular telescopes. the bin structure
@@ -199,7 +163,7 @@ def bin_telescope(time, mag, error, binsize=0.1):
     return binned_time, binned_mag, binned_error
 
 def chi2_telescope(time, mag, error, stellar_variation_model, best_fit, 
-                   k2_time0, binsize=0.1, sigma_clip=1):
+                   binsize=0.1, sigma_clip=1):
     '''
     this function calculates the chi2 value of the stellar variation model
     as it relates to the data for a particular telescope
@@ -216,9 +180,6 @@ def chi2_telescope(time, mag, error, stellar_variation_model, best_fit,
         contains the function to calculate the stellar variation model
     best_fit : list, tuple, array
         best fit parameters for the stellar variation model
-    k2_time0 : float
-        contains the time value neccessary to properly align the stellar
-        variation model
     binsize : float
         contains the size of the bins (see bin_telescope for more details)
     sigma_clip : float
@@ -240,14 +201,14 @@ def chi2_telescope(time, mag, error, stellar_variation_model, best_fit,
     clip_mag   = bin_mag[clip_mask]
     clip_error = bin_error[clip_mask]
     # calculate model values
-    model_mag = stellar_variation_model(best_fit, clip_time, k2_time0)
+    model_mag = stellar_variation_model(best_fit, clip_time)
     # calculate chi2, goodness of fit
     chi2 = np.sum((clip_mag - model_mag)**2 / model_mag**2)
     chi2_norm = chi2 / len(clip_time)
     return chi2_norm
 
 def chi2_all(times, mags, errors, telescopes, stellar_variation_model, 
-             best_fit, k2_time0, binsize=0.1, sigma_clip=1, diag=False):
+             best_fit, binsize=0.1, sigma_clip=1, diag=False):
     '''
     this function calculates the chi2 value for each of the telescopes and 
     filters provided. It does this for a particular binsize.
@@ -266,9 +227,6 @@ def chi2_all(times, mags, errors, telescopes, stellar_variation_model,
         contains the function to calculate the stellar variation model
     best_fit : list, tuple, array
         best fit parameters for the stellar variation model
-    k2_time0 : float
-        contains the time value neccessary to properly align the stellar
-        variation model
     binsize : float
         contains the size of the bins (see bin_telescope for more details)
     sigma_clip : float
@@ -286,7 +244,7 @@ def chi2_all(times, mags, errors, telescopes, stellar_variation_model,
     header = True
     for time, mag, error, telescope in zip(times, mags, errors, telescopes):
         chi2 = chi2_telescope(time, mag, error, stellar_variation_model,
-                              best_fit, k2_time0, binsize, sigma_clip)
+                              best_fit, binsize, sigma_clip)
         if diag == True:
             if header == True:
                 print('Telescope     Chi2')
@@ -363,7 +321,7 @@ def plot_all(times, mags, errors, telescopes, xlim=None, ylim=(-0.45,1.25),
 
 
 def plot_part(times, mags, errors, telescopes, stellar_variation_model, 
-              best_fit, k2_time0, xlim=(2452000, 2459000), ylim=(-0.2, 0.2), 
+              best_fit, xlim=(2452000, 2459000), ylim=(-0.2, 0.2), 
               binsize=0.1, unbinned=True, unbinned_error=True, binned=True, 
               savename='test.png', show=True):
     '''
@@ -384,9 +342,6 @@ def plot_part(times, mags, errors, telescopes, stellar_variation_model,
         contains the function to calculate the stellar variation model
     best_fit : list, tuple, array
         best fit parameters for the stellar variation model function
-    k2_time0 : float
-        contains the time value necessary to properly align the stellar 
-        variation model
     xlim : tuple
         contains the x limits of the plot
     ylim : tuple
@@ -418,7 +373,7 @@ def plot_part(times, mags, errors, telescopes, stellar_variation_model,
     # create the model magnitudes and times
     tmin, tmax = xlim 
     model_time = np.linspace(tmin, tmax, 100*int(tmax - tmin))
-    model_mag  = stellar_variation_model(best_fit, model_time, k2_time0)
+    model_mag  = stellar_variation_model(best_fit, model_time)
     # plot parameters
     ntel  = len(telescopes)
     mrkrs = ['v','x','o','s','h','^','s','d','<','p','*','>','x']
@@ -472,9 +427,9 @@ def plot_part(times, mags, errors, telescopes, stellar_variation_model,
     return None
 
 def plot_windows(times, mags, errors, telescopes, stellar_variation_model, 
-                 best_fit, k2_time0, time_range=(2452000, 2459000), 
-                 ylim=(-0.1,0.1), binsize=0.1, unbinned=True, 
-                 unbinned_error=True, binned=True, window_size=30):
+                 best_fit, time_range=(2452000, 2459000), ylim=(-0.1,0.1), 
+                 binsize=0.1, unbinned=True, unbinned_error=True, binned=True,
+                 window_size=30):
     '''
     this function creates plots of all the photometry with a certain window
     size with the stellar variation model over plotted. There is also a
@@ -494,9 +449,6 @@ def plot_windows(times, mags, errors, telescopes, stellar_variation_model,
         contains the function to calculate the stellar variation model
     best_fit : list, tuple, array
         best fit parameters for the stellar variation model function
-    k2_time0 : float
-        contains the time value necessary to properly align the stellar 
-        variation model
     time_range : tuple
         contains the maximum extent from which to produce window plots
     ylim : tuple
@@ -554,7 +506,7 @@ def plot_windows(times, mags, errors, telescopes, stellar_variation_model,
             savename = savebase % xlim
             fullsave = '%s%s' % (root, savename)
             plot_part(times, mags, errors, telescopes, stellar_variation_model,
-                      best_fit, k2_time0, xlim, ylim, binsize, unbinned, 
-                      unbinned_error, binned, fullsave, False)
+                      best_fit, xlim, ylim, binsize, unbinned, unbinned_error,
+                      binned, fullsave, False)
         tl = tu
     return None

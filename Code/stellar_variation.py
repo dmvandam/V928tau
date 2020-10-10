@@ -150,7 +150,7 @@ def plot_folded(time, flux, error, Pb, flux_fit, xlim=(0,1)):
 #%% MODEL FUNCTIONS %%#
 #######################
 
-def line(time, slope, y_intercept):
+def line(time, slope, y_intercept, dt=0):
     '''
     this is simply the a line function for scipy.optimize
 
@@ -162,17 +162,19 @@ def line(time, slope, y_intercept):
         slope of the line
     y_intercept : float
         y-intercept of the line
+    dt : float
+        time shift (useful if you for example get the same data in MJD and JD)
 
     Returns
     -------
     trend : array of floats
         line that follows trend = slope * time_fixed + y_intercept
     '''
-    time_fixed = time - time[0]
+    time_fixed = time -dt 
     trend = slope * time_fixed + y_intercept
     return trend
 
-def sines(time, amplitudes, periods, phases):
+def sines(time, amplitudes, periods, phases, dt=0):
     '''
     function that returns the sum of several sinusoids
 
@@ -186,13 +188,15 @@ def sines(time, amplitudes, periods, phases):
         periods of the sines
     phases : list of floats
         phases of the sines
+    dt : float
+        time shift (useful if you for example get the same data in MJD and JD)
 
     Returns
     -------
     trend : array of float
         sum of sines with given input parameters
     '''
-    time_fixed = time - time[0]
+    time_fixed = time - dt
     trend = 0
     for amplitude, period, phase in zip(amplitudes, periods, phases):
         sine = amplitude * np.sin(2 * np.pi * time_fixed / period + phase)
