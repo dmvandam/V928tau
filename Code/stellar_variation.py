@@ -170,7 +170,7 @@ def line(time, slope, y_intercept, dt=0):
     trend : array of floats
         line that follows trend = slope * time_fixed + y_intercept
     '''
-    time_fixed = time -dt 
+    time_fixed = time - dt 
     trend = slope * time_fixed + y_intercept
     return trend
 
