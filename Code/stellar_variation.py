@@ -25,8 +25,9 @@ import numpy as np
 #%% ANALYSIS FUNCTIONS %%#
 ##########################
 
-def lombscargle_periodogram(time, flux, error, min_period=0.1, max_period=4,
-                            peak_points=10, height=0, peak_ind=0, plot=True):
+def lombscargle_periodogram(time, flux, error, dt=0, min_period=0.1, 
+                            max_period=4, peak_points=10, height=0, 
+                            peak_ind=0, plot=True, xlim=(0,1)):
     '''
     this function determines the peak period of a given light curve, allows
     one to choose which peak to select, then plots the periodogram and the
@@ -40,6 +41,8 @@ def lombscargle_periodogram(time, flux, error, min_period=0.1, max_period=4,
         contains flux data for the light curve
     error : array of float
         contains error data for the light curve
+    dt : float
+        time shift [default = 0]
     min_period : float
         minimum period to investigate [default = 0.1 days]
     max_period : float
@@ -52,7 +55,9 @@ def lombscargle_periodogram(time, flux, error, min_period=0.1, max_period=4,
         choose a peak number, maximum is default [peak_ind = 0]
     plot : bool
         plot a periodogram and the folded lightcurve with best fit sinusoid
-     
+    xlim : tuple
+        x-limits of the folded plot [default = (0, 1)]
+
     Returns
     -------
     Pb : tuple
@@ -61,7 +66,7 @@ def lombscargle_periodogram(time, flux, error, min_period=0.1, max_period=4,
     residuals : array of float
         contains the residuals between the best fit model and the data
     '''
-    time_fixed = time - time[0]
+    time_fixed = time - dt
     # create the periodogram
     model = LombScargle(time_fixed, flux, error)
     frequencies, power = model.autopower(minimum_frequency=(1./max_period), 
@@ -96,11 +101,11 @@ def lombscargle_periodogram(time, flux, error, min_period=0.1, max_period=4,
         plt.gca().axvline(x=period, color='k', ls=':')
         plt.show()
         # folded light curve
-        plot_folded(time_fixed, flux, error, Pb, flux_fit)
+        plot_folded(time_fixed, flux, error, Pb, flux_fit, dt, xlim)
         print('%.6f sin(2 pi time / %.4f + %.4f)' % Pb)
     return Pb, residuals
 
-def plot_folded(time, flux, error, Pb, flux_fit, xlim=(0,1)):
+def plot_folded(time, flux, error, Pb, flux_fit, dt=0, xlim=(0,1)):
     '''
     this function makes a phase-folded plot of the provided light curve
     
@@ -119,6 +124,8 @@ def plot_folded(time, flux, error, Pb, flux_fit, xlim=(0,1)):
             amplitude --> of the sine
             period --> of the sine
             phase --> of the sine
+    dt : float
+        time shift [default = 0]
     xlim : tuple
         xlims of the plot [default = (0, 1)]
 
@@ -127,7 +134,7 @@ def plot_folded(time, flux, error, Pb, flux_fit, xlim=(0,1)):
     matplotlib.figure()
     '''
     # correct time
-    time_fixed = time - time[0]
+    time_fixed = time - dt
     # extract best fit
     amp, prd, phs = Pb
     phase = (time_fixed % prd) / prd
